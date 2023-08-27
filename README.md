@@ -77,7 +77,10 @@ swaggerfy({
         if (!user.hasAccessTo(pet)) {
             return jsonResponse(403, {error: 403, type: 'FORBIDDEN', message: "You don't have permission to access the requested resource."});
         }
-        
+
+        /**
+         * Single pet response.
+         */
         return jsonResponse(200, pet);
     },
 });

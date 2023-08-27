@@ -25,7 +25,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "Single pet response.",
             "content": {
               "application/json": {
                 "schema": {

@@ -35,7 +35,7 @@ export const config = {
 import type {PetId, Pet, getPet} from './src/db/pet.ts';
 import type {User, findUserByApiKey} from './src/db/user.ts';
 import express, { Express } from 'express';
-import {swaggerfy, path, pathParam, header, Int64, security, jsonResponse} from '@swaggerfyts/express';
+import {swaggerfy, path, pathParam, header, security, jsonResponse} from '@swaggerfyts/express';
 
 const app: Express = express();
 
@@ -59,11 +59,7 @@ const apiKeyHeader = security({
 /**
  * ID of the pet to return.
  */
-const petId = pathParam<PetId>('petId');     //using the previously registered custom type 
-// OR
-const petId = pathParam<Int64>('petId');     //using the built-in type (without minimum=0)
-// OR
-const petId = pathParam<Int64<{minimum: 0}>>; //using the built-in type (with minimum=0)
+const petId = pathParam<PetId>('petId');      //using the previously registered custom type
 /**
  * Find pet by ID. Returns a single pet.
  * @operationId: getPetById
@@ -90,9 +86,10 @@ app.listen(...);
 ```
 
 ### OpenAPI Spec:
-Running the command line tool generated the [following file](https://github.com/swaggerfyts/swaggerfyts/blob/main/docs/exampleOutput.json).
-
-[Open file in Swagger Editor.](https://editor.swagger.io/?url=https://raw.githubusercontent.com/swaggerfyts/swaggerfyts/blob/main/docs/exampleOutput.json)
+Running the command line tool on the example code above generates the 
+[following file](https://github.com/swaggerfyts/swaggerfyts/blob/main/docs/exampleOutput.json), which you probably want to 
+[open in the swagger editor](https://editor.swagger.io/?url=https://raw.githubusercontent.com/swaggerfyts/swaggerfyts/main/docs/exampleOutput.json)
+to view.
 ```
 ## Credit
 This tool is partially inspired from [TSOA](https://github.com/lukeautry/tsoa).

@@ -1,0 +1,35 @@
+{
+  "name": "swaggerfyts",
+  "version": "0.0.0",
+  "description": "SwaggerfyTs is an unopinonated tool which uses static code analysis to create a OpenAPI  specifications from typescript code, compatible with most web frameworks.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "typescript",
+    "swagger",
+    "openAPI",
+    "static code analysis",
+    "generate spec",
+    "generate specification",
+    "generate openapi",
+    "generate swagger",
+    "from code",
+    "code to spec"
+  ],
+  "author": "MartinRamm",
+  "license": "Unlicense",
+  "dependencies": {
+    "effect": "2.0.0-next.30"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  },
+  "peerDependencies": {
+    "typescript": ">=5"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

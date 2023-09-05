@@ -1,0 +1,19 @@
+{
+  "extends": [
+    "@tsconfig/node18",
+    "@tsconfig/strictest"
+  ],
+  "compilerOptions": {
+    "preserveConstEnums": true,
+    "noImplicitAny": true,
+    "allowJs": false,
+    "checkJs": false,
+    "strictNullChecks": true,
+    "exactOptionalPropertyTypes": true,
+    "strictPropertyInitialization": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "noImplicitThis": true,
+  },
+  "exclude": ["**/node_modules"]
+}

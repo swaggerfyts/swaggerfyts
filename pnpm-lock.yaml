@@ -1,0 +1,19 @@
+lockfileVersion: 5.4
+
+specifiers:
+  '@tsconfig/node18': ^18.2.1
+  '@tsconfig/strictest': ^2.0.2
+
+dependencies:
+  '@tsconfig/node18': 18.2.1
+  '@tsconfig/strictest': 2.0.2
+
+packages:
+
+  /@tsconfig/node18/18.2.1:
+    resolution: {integrity: sha512-RDDZFuofwkcKpl8Vpj5wFbY+H53xOtqK7ckEL1sXsbPwvKwDdjQf3LkHbtt9sxIHn9nWIEwkmCwBRZ6z5TKU2A==}
+    dev: false
+
+  /@tsconfig/strictest/2.0.2:
+    resolution: {integrity: sha512-jt4jIsWKvUvuY6adJnQJlb/UR7DdjC8CjHI/OaSQruj2yX9/K6+KOvDt/vD6udqos/FUk5Op66CvYT7TBLYO5Q==}
+    dev: false

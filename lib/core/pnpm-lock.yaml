@@ -1,0 +1,69 @@
+lockfileVersion: 5.4
+
+specifiers:
+  effect: 2.0.0-next.30
+  typescript: ^5.2.2
+
+dependencies:
+  effect: 2.0.0-next.30
+
+devDependencies:
+  typescript: 5.2.2
+
+packages:
+
+  /@effect/data/0.18.3:
+    resolution: {integrity: sha512-xNG4CwxE758EK0v81EIPnKv9QeU/x9st1Doab/Fjf7sb9V3n55C85aBiKChpKgGD8pKCPHcjGydLsRHVUvzpwg==}
+    dev: false
+
+  /@effect/io/0.39.1_@effect+data@0.18.3:
+    resolution: {integrity: sha512-ISBX1EYsWdVBMOV3ZmEVtbMW8FyVwmK6K47rx8ztOjMBKS5tfhB4W8iRjyycObvvlolfpIcZuAAPrCW5Tty+4Q==}
+    peerDependencies:
+      '@effect/data': ^0.18.0
+    dependencies:
+      '@effect/data': 0.18.3
+    dev: false
+
+  /@effect/match/0.35.2_@effect+data@0.18.3:
+    resolution: {integrity: sha512-2zZhWIdejX3xqbjormykBveHZTB/DBr/u/XBj5Ln6u2ShbMvoUykgVEscQLN3CsQeHDS14Vvr1DOvH0qeMILZQ==}
+    peerDependencies:
+      '@effect/data': ^0.18.3
+    dependencies:
+      '@effect/data': 0.18.3
+    dev: false
+
+  /@effect/stm/0.23.0_kgz55fndvkfd336gbyi3tzqyqe:
+    resolution: {integrity: sha512-c8pXK5mN9ZCFwPvxNJRzxAWwwSWjkdxs1FlCh1mdyXSah0uSD+lkuvEKrcpJCJroMmMBPrxKJv5ascfzTbBE9A==}
+    peerDependencies:
+      '@effect/data': ^0.18.3
+      '@effect/io': ^0.39.0
+    dependencies:
+      '@effect/data': 0.18.3
+      '@effect/io': 0.39.1_@effect+data@0.18.3
+    dev: false
+
+  /@effect/stream/0.35.1_kgz55fndvkfd336gbyi3tzqyqe:
+    resolution: {integrity: sha512-MPtZdEZ3U2vtQTg+jXm6Xg5i0p4wO+BC4KtXqV93KIajk7sLfjlLlRf7GqlUPZgMH+jSoOAPARjM+G3UsNhMvg==}
+    peerDependencies:
+      '@effect/data': ^0.18.3
+      '@effect/io': ^0.39.0
+    dependencies:
+      '@effect/data': 0.18.3
+      '@effect/io': 0.39.1_@effect+data@0.18.3
+    dev: false
+
+  /effect/2.0.0-next.30:
+    resolution: {integrity: sha512-7mCheLiy6x33e4qXLSFpQ9TCpj/+gPhPjLtBY9HODzH0sQw3B4sBUytoKWd+7DnRJRU7sdJbpPZnfDz+M1g3fw==}
+    dependencies:
+      '@effect/data': 0.18.3
+      '@effect/io': 0.39.1_@effect+data@0.18.3
+      '@effect/match': 0.35.2_@effect+data@0.18.3
+      '@effect/stm': 0.23.0_kgz55fndvkfd336gbyi3tzqyqe
+      '@effect/stream': 0.35.1_kgz55fndvkfd336gbyi3tzqyqe
+    dev: false
+
+  /typescript/5.2.2:
+    resolution: {integrity: sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+    dev: true

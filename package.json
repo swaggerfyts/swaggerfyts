@@ -1,0 +1,11 @@
+{
+  "workspaces": [
+    "lib/*"
+  ],
+  "author": "MartinRamm",
+  "license": "Unlicense",
+  "dependencies": {
+    "@tsconfig/node18": "^18.2.1",
+    "@tsconfig/strictest": "^2.0.2"
+  }
+}

@@ -1,7 +1,4 @@
 {
-  "workspaces": [
-    "lib/*"
-  ],
   "author": "MartinRamm",
   "license": "Unlicense",
   "scripts": {

@@ -25,12 +25,15 @@ module.exports = {
     'prettier',
 
     'plugin:security/recommended',
+
+    'plugin:ava/recommended',
   ],
 
   plugins: ['@typescript-eslint', 'prettier', 'ts-immutable', 'folders', 'import', 'filenames', 'security'],
 
   // add your custom rules here
   rules: {
+    'ava/no-ignored-test-files': 'off', //somehow this isn't working
     'prefer-promise-reject-errors': 'off',
 
     '@typescript-eslint/ban-ts-comment': [

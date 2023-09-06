@@ -34,6 +34,7 @@ module.exports = {
   // add your custom rules here
   rules: {
     'ava/no-ignored-test-files': 'off', //somehow this isn't working
+
     'prefer-promise-reject-errors': 'off',
 
     '@typescript-eslint/ban-ts-comment': [
@@ -62,7 +63,7 @@ module.exports = {
     'ts-immutable/no-reject': 'error',
     'ts-immutable/immutable-data': ['error', { ignoreAccessorPattern: 'module' }], //allow setting `module.exports`
 
-    'folders/match-regex': [2, '^[a-z][a-z-]+$', '/src/'],
+    'folders/match-regex': [2, '^[a-z][a-z-]+$', 'lib'],
 
     'import/no-default-export': 2,
     'import/no-relative-packages': 'error',

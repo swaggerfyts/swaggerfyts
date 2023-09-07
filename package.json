@@ -9,6 +9,7 @@
   "devDependencies": {
     "@tsconfig/node18": "^18.2.1",
     "@tsconfig/strictest": "^2.0.2",
+    "@types/node": "^20.5.9",
     "@typescript-eslint/eslint-plugin": "^6.6.0",
     "@typescript-eslint/parser": "^6.6.0",
     "eslint": "^8.48.0",

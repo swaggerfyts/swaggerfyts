@@ -1,0 +1,1 @@
+export { SwaggerfyTsError } from '../SwaggerfyTsError';

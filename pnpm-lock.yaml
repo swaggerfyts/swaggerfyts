@@ -10,6 +10,9 @@ importers:
       '@tsconfig/strictest':
         specifier: ^2.0.2
         version: 2.0.2
+      '@types/node':
+        specifier: ^20.5.9
+        version: 20.5.9
       '@typescript-eslint/eslint-plugin':
         specifier: ^6.6.0
         version: 6.6.0(@typescript-eslint/parser@6.6.0)(eslint@8.48.0)(typescript@5.2.2)
@@ -55,24 +58,9 @@ importers:
 
   lib/core:
     dependencies:
-      '@effect/data':
-        specifier: ^0.18.4
-        version: 0.18.4
-      '@effect/io':
-        specifier: ^0.40.0
-        version: 0.40.0(@effect/data@0.18.4)
-      '@effect/match':
-        specifier: ^0.35.2
-        version: 0.35.2(@effect/data@0.18.4)
-      '@effect/stm':
-        specifier: ^0.24.0
-        version: 0.24.0(@effect/data@0.18.4)(@effect/io@0.40.0)
-      '@effect/stream':
-        specifier: ^0.36.0
-        version: 0.36.0(@effect/data@0.18.4)(@effect/io@0.40.0)
       effect:
-        specifier: 2.0.0-next.30
-        version: 2.0.0-next.30(@effect/data@0.18.4)(@effect/io@0.40.0)(@effect/match@0.35.2)(@effect/stm@0.24.0)(@effect/stream@0.36.0)
+        specifier: 2.0.0-next.31
+        version: 2.0.0-next.31(@effect/data@0.18.4)(@effect/io@0.40.0)(@effect/match@0.35.2)(@effect/stm@0.24.0)(@effect/stream@0.36.0)
       ts-morph:
         specifier: ^19.0.0
         version: 19.0.0
@@ -244,6 +232,10 @@ packages:
 
   /@types/json5@0.0.29:
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
+    dev: true
+
+  /@types/node@20.5.9:
+    resolution: {integrity: sha512-PcGNd//40kHAS3sTlzKB9C9XL4K0sTup8nbG5lC14kzEteTNuAFh9u5nA0o5TWnSG2r/JNPRXFVcHJIIeRlmqQ==}
     dev: true
 
   /@types/semver@7.5.1:
@@ -986,14 +978,14 @@ packages:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
     dev: true
 
-  /effect@2.0.0-next.30(@effect/data@0.18.4)(@effect/io@0.40.0)(@effect/match@0.35.2)(@effect/stm@0.24.0)(@effect/stream@0.36.0):
-    resolution: {integrity: sha512-7mCheLiy6x33e4qXLSFpQ9TCpj/+gPhPjLtBY9HODzH0sQw3B4sBUytoKWd+7DnRJRU7sdJbpPZnfDz+M1g3fw==}
+  /effect@2.0.0-next.31(@effect/data@0.18.4)(@effect/io@0.40.0)(@effect/match@0.35.2)(@effect/stm@0.24.0)(@effect/stream@0.36.0):
+    resolution: {integrity: sha512-08bGtfQbd9e25AZvOavquEifcGEWn4f46ucJ2cgB97PsmlTa/+SrD81apLfeE+47meawnfwabSboYP/HFKZByA==}
     peerDependencies:
-      '@effect/data': ^0.18.3
-      '@effect/io': ^0.39.0
-      '@effect/match': ^0.35.1
-      '@effect/stm': ^0.23.0
-      '@effect/stream': ^0.35.1
+      '@effect/data': ^0.18.4
+      '@effect/io': ^0.40.0
+      '@effect/match': ^0.35.2
+      '@effect/stm': ^0.24.0
+      '@effect/stream': ^0.36.0
     dependencies:
       '@effect/data': 0.18.4
       '@effect/io': 0.40.0(@effect/data@0.18.4)

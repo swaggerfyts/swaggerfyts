@@ -1,0 +1,10 @@
+#config files
+**/tsconfig.json
+**/.eslintignore
+**/.eslintrc.js
+
+#tests
+**/test
+
+#do include compiled typescript (.npmignore inherits from .gitignore!)
+!lib/**/*.js

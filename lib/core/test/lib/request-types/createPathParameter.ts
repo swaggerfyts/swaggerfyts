@@ -9,8 +9,26 @@ test('correct type', t => {
   const bool = createPathParameter<boolean, 'asdf'>();
   expectTypeOf(bool).toBeBoolean();
 
+  const boolTrue = createPathParameter<true, 'asdf'>();
+  expectTypeOf(boolTrue).toMatchTypeOf<true>();
+
   const str = createPathParameter<string, 'asdf'>();
   expectTypeOf(str).toBeString();
+
+  const strLiteral = createPathParameter<'str', 'asdf'>();
+  expectTypeOf(strLiteral).toMatchTypeOf<'str'>();
+
+  const strUnion = createPathParameter<'a' | 'b' | 'c', 'asdf'>();
+  expectTypeOf(strUnion).toMatchTypeOf<'a' | 'b' | 'c'>();
+
+  enum Param {
+    a = 'a',
+    b = 'b',
+    c = 'c'
+  }
+  const enumParam = createPathParameter<Param, 'asdf'>();
+  expectTypeOf(enumParam).toMatchTypeOf<Param>();
+  expectTypeOf(enumParam).toMatchTypeOf<Param.a | Param.b | Param.c>();
 
   const arr = createPathParameter<string[], 'asdf'>();
   expectTypeOf(arr).toBeArray();
@@ -29,4 +47,14 @@ test('correct type', t => {
     .toEqualTypeOf(3 as const);
 
   t.pass();
+
+  type BrandedString = string & {brand: 'test'};
+  const brandedStr = createPathParameter<BrandedString, 'asdf'>();
+  expectTypeOf(brandedStr).toMatchTypeOf<BrandedString>();
+
+  type CustomType = {a: string, b: number};
+  const customType = createPathParameter<CustomType, 'asdf'>();
+  expectTypeOf(customType).toMatchTypeOf<CustomType>();
+  expectTypeOf(customType).toHaveProperty('a').toBeString();
+  expectTypeOf(customType).toHaveProperty('b').toBeNumber();
 });

@@ -2,7 +2,7 @@ import { isQueryParameterService } from '../../../compiler-plugin/request-types/
 import { isRequestBodyService } from '../../../compiler-plugin/request-types/isRequestBodyService';
 import { isRequestCookieService } from '../../../compiler-plugin/request-types/isRequestCookieService';
 import { isRequestHeaderService } from '../../../compiler-plugin/request-types/isRequestHeaderService';
-import { isRequestParameterService } from '../../../compiler-plugin/request-types/isRequestParameterService';
+import { isPathParameterService } from '../../../compiler-plugin/request-types/isPathParameterService';
 import { Effect, Option, pipe, ReadonlyArray } from 'effect';
 import { Node, SourceFile, SyntaxKind, Type } from 'ts-morph';
 
@@ -12,7 +12,7 @@ export const getIsServiceResultFromSourceFile = <
     | typeof isQueryParameterService
     | typeof isRequestCookieService
     | typeof isRequestHeaderService
-    | typeof isRequestParameterService,
+    | typeof isPathParameterService,
 >(
   service: Service
 ) =>

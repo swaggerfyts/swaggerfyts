@@ -1,9 +1,9 @@
 import test from 'ava';
 import { Effect, pipe } from 'effect';
 import {
-  isRequestParameterDefaultImplementation,
-  isRequestParameterService,
-} from '../../../compiler-plugin/request-types/isRequestParameterService';
+  isPathParameterDefaultImplementation,
+  isPathParameterService,
+} from '../../../compiler-plugin/request-types/isPathParameterService';
 import { typeTestCases } from '../../../test-util/typeTestCases';
 import { getIsServiceResultFromSourceFile } from '../../../test-util/compiler-plugin/request-types/getIsServiceResultFromSourceFile';
 import { testIsServiceResultEffect } from '../../../test-util/compiler-plugin/request-types/testIsServiceResultEffect';
@@ -22,8 +22,8 @@ typeTestCases.forEach(([type, preStatement, predicate]) =>
     );
 
     pipe(
-      getIsServiceResultFromSourceFile(isRequestParameterService)(sourceFile),
-      isRequestParameterDefaultImplementation,
+      getIsServiceResultFromSourceFile(isPathParameterService)(sourceFile),
+      isPathParameterDefaultImplementation,
       Effect.runSyncExit,
       testIsServiceResultEffect('asdf', predicate, t)
     );

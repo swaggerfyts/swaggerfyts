@@ -19,8 +19,6 @@ const project = new Project({
 });
 project.addSourceFileAtPath(__dirname + '/../../../lib/request-types/createPathParameter.ts');
 
-const importCreatePathParameter = "import { createPathParameter } from './lib/request-types/createPathParameter'";
-
 const getRequestParameterResults = Effect.serviceFunctionEffect(
   isRequestParameterService,
   isRequestParameter => (sourceFile: SourceFile) =>
@@ -71,10 +69,13 @@ const isB = (tB: Type | FakeUnionOrIntersectionType, n: Node) => {
   );
 };
 
-let simpleTests: Array<[string, (type: Type | FakeUnionOrIntersectionType, node: Node) => boolean]> = [
-  ['number', t => !isFakeUnionOrIntersectionType(t) && t.isNumber()],
+let simpleTests: Array<
+  [string, string | undefined, (type: Type | FakeUnionOrIntersectionType, node: Node) => boolean]
+> = [
+  ['number', undefined, t => !isFakeUnionOrIntersectionType(t) && t.isNumber()],
   [
     'boolean',
+    undefined,
     t =>
       (!isFakeUnionOrIntersectionType(t) && t.isBoolean()) ||
       (isFakeUnionOrIntersectionType(t) &&
@@ -87,10 +88,11 @@ let simpleTests: Array<[string, (type: Type | FakeUnionOrIntersectionType, node:
             (ut.getText() === ['false', 'true'][index] || ut.getText() === ['true', 'false'][index])
         )),
   ],
-  ['true', t => !isFakeUnionOrIntersectionType(t) && t.isBooleanLiteral() && t.getText() === 'true'],
-  ['string', t => !isFakeUnionOrIntersectionType(t) && t.isString()],
+  ['true', undefined, t => !isFakeUnionOrIntersectionType(t) && t.isBooleanLiteral() && t.getText() === 'true'],
+  ['string', undefined, t => !isFakeUnionOrIntersectionType(t) && t.isString()],
   [
     'string & {__brand: "a"}',
+    undefined,
     (t, n) => {
       const types = isFakeUnionOrIntersectionType(t) ? t.types : t.getIntersectionTypes();
 
@@ -122,9 +124,10 @@ let simpleTests: Array<[string, (type: Type | FakeUnionOrIntersectionType, node:
       );
     },
   ],
-  ['"str"', t => !isFakeUnionOrIntersectionType(t) && t.isStringLiteral() && t.getText() === '"str"'],
+  ['"str"', undefined, t => !isFakeUnionOrIntersectionType(t) && t.isStringLiteral() && t.getText() === '"str"'],
   [
     '"a" | "b"',
+    undefined,
     t => {
       const unionTypes = isFakeUnionOrIntersectionType(t) ? t.types : t.getUnionTypes();
       return (
@@ -140,6 +143,7 @@ let simpleTests: Array<[string, (type: Type | FakeUnionOrIntersectionType, node:
   ],
   [
     '[string, number]',
+    undefined,
     t => {
       if (isFakeUnionOrIntersectionType(t)) {
         return false;
@@ -159,6 +163,7 @@ let simpleTests: Array<[string, (type: Type | FakeUnionOrIntersectionType, node:
   ],
   [
     '{ a: string; b: number; }',
+    undefined,
     (t, n) => {
       if (isFakeUnionOrIntersectionType(t)) {
         return false;
@@ -179,6 +184,7 @@ let simpleTests: Array<[string, (type: Type | FakeUnionOrIntersectionType, node:
   ],
   [
     '{ a: string; } & { b: number; }',
+    undefined,
     (t, n) => {
       const types = isFakeUnionOrIntersectionType(t) ? t.types : t.getIntersectionTypes();
 
@@ -194,6 +200,7 @@ let simpleTests: Array<[string, (type: Type | FakeUnionOrIntersectionType, node:
   ],
   [
     '{ a: string; } & { b: number; } & { c: "c"; }',
+    undefined,
     (t, n) => {
       const isC = (tC: Type | FakeUnionOrIntersectionType, n: Node) => {
         if (isFakeUnionOrIntersectionType(tC)) {
@@ -229,8 +236,65 @@ let simpleTests: Array<[string, (type: Type | FakeUnionOrIntersectionType, node:
       );
     },
   ],
+  [
+    'STRING_ENUM',
+    'enum STRING_ENUM { A = "A", B = "B" };',
+    t => {
+      const enumTypes = isFakeUnionOrIntersectionType(t) ? t.types : t.getUnionTypes();
+      return (
+        enumTypes.length === 2 &&
+        enumTypes[0] !== undefined &&
+        enumTypes[1] !== undefined &&
+        enumTypes.every(te => !isFakeUnionOrIntersectionType(te) && te.isEnumLiteral()) &&
+        (enumTypes.every(
+          (te, index) => !isFakeUnionOrIntersectionType(te) && te.getLiteralValue() === ['A', 'B'][index]
+        ) ||
+          enumTypes.every(
+            (te, index) => !isFakeUnionOrIntersectionType(te) && te.getLiteralValue() === ['B', 'A'][index]
+          )) &&
+        ((isFakeUnionOrIntersectionType(t) && t.join === 'union') || (!isFakeUnionOrIntersectionType(t) && t.isEnum()))
+      );
+    },
+  ],
+  [
+    'NUMBERED_ENUM',
+    'enum NUMBERED_ENUM { A = 2, B = 4 };',
+    t => {
+      const enumTypes = isFakeUnionOrIntersectionType(t) ? t.types : t.getUnionTypes();
+
+      return (
+        enumTypes.length === 2 &&
+        enumTypes[0] !== undefined &&
+        enumTypes[1] !== undefined &&
+        enumTypes.every(te => !isFakeUnionOrIntersectionType(te) && te.isEnumLiteral()) &&
+        (enumTypes.every((te, index) => !isFakeUnionOrIntersectionType(te) && te.getLiteralValue() === [2, 4][index]) ||
+          enumTypes.every(
+            (te, index) => !isFakeUnionOrIntersectionType(te) && te.getLiteralValue() === [4, 2][index]
+          )) &&
+        ((isFakeUnionOrIntersectionType(t) && t.join === 'union') || (!isFakeUnionOrIntersectionType(t) && t.isEnum()))
+      );
+    },
+  ],
+  [
+    'INDEXED_ENUM',
+    'enum INDEXED_ENUM { A, B };',
+    t => {
+      const enumTypes = isFakeUnionOrIntersectionType(t) ? t.types : t.getUnionTypes();
+      return (
+        enumTypes.length === 2 &&
+        enumTypes[0] !== undefined &&
+        enumTypes[1] !== undefined &&
+        enumTypes.every(te => !isFakeUnionOrIntersectionType(te) && te.isEnumLiteral()) &&
+        (enumTypes.every((te, index) => !isFakeUnionOrIntersectionType(te) && te.getLiteralValue() === [0, 1][index]) ||
+          enumTypes.every(
+            (te, index) => !isFakeUnionOrIntersectionType(te) && te.getLiteralValue() === [1, 0][index]
+          )) &&
+        ((isFakeUnionOrIntersectionType(t) && t.join === 'union') || (!isFakeUnionOrIntersectionType(t) && t.isEnum()))
+      );
+    },
+  ],
 ];
-simpleTests = simpleTests.flatMap(([type, predicate]) => {
+simpleTests = simpleTests.flatMap(([type, preStatement, predicate]) => {
   const arrayType = `Array<${type}>`;
   const arrayPredicate = (t: Type | FakeUnionOrIntersectionType, n: Node) => {
     if (isFakeUnionOrIntersectionType(t)) {
@@ -242,16 +306,18 @@ simpleTests = simpleTests.flatMap(([type, predicate]) => {
   };
 
   return [
-    [type, predicate],
-    [arrayType, arrayPredicate],
+    [type, preStatement, predicate],
+    [arrayType, preStatement, arrayPredicate],
   ];
 });
 
-simpleTests.forEach(([type, predicate]) =>
+simpleTests.forEach(([type, preStatement, predicate]) =>
   test(`Simple Test: ${type}`, t => {
     const sourceFile = project.createSourceFile(
       'test.ts',
-      `${importCreatePathParameter} const pathParameter = createPathParameter<${type}, 'asdf'>();`,
+      `import { createPathParameter } from './lib/request-types/createPathParameter'; ${
+        preStatement || ''
+      } const pathParameter = createPathParameter<${type}, 'asdf'>();`,
       { overwrite: true }
     );
 

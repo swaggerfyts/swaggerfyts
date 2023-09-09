@@ -5,6 +5,7 @@
 
 #tests
 **/test
+**/test-util
 
 #do include compiled typescript (.npmignore inherits from .gitignore!)
 !lib/**/*.js

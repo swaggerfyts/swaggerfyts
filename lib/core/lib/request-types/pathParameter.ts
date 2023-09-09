@@ -5,5 +5,4 @@ export type PathParameter<Type, Name extends string> = Type & {
   readonly swaggerfyTsName: Name;
 };
 
-export const pathParameter = <const Type, const Name extends string>() =>
-  null as unknown as PathParameter<Type, Name>;
+export const pathParameter = <const Type, const Name extends string>() => null as unknown as PathParameter<Type, Name>;

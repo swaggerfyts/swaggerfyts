@@ -17,7 +17,7 @@ const project = new Project({
     noEmit: true,
   },
 });
-project.addSourceFileAtPath(__dirname + '/../../../lib/request-types/createPathParameter.ts');
+project.addSourceFileAtPath(__dirname + '/../../../lib/request-types/pathParameter.ts');
 
 const getRequestParameterResults = Effect.serviceFunctionEffect(
   isRequestParameterService,
@@ -315,9 +315,9 @@ simpleTests.forEach(([type, preStatement, predicate]) =>
   test(`Simple Test: ${type}`, t => {
     const sourceFile = project.createSourceFile(
       'test.ts',
-      `import { createPathParameter } from './lib/request-types/createPathParameter'; ${
+      `import { pathParameter } from './lib/request-types/pathParameter'; ${
         preStatement || ''
-      } const pathParameter = createPathParameter<${type}, 'asdf'>();`,
+      } const param = pathParameter<${type}, 'asdf'>();`,
       { overwrite: true }
     );
 

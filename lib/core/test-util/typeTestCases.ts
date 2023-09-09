@@ -30,27 +30,47 @@ const isB = (tB: Type | FakeUnionOrIntersectionType, n: Node) => {
     prop.getTypeAtLocation(n).isNumber()
   );
 };
+
+export const numTestCase = [
+  'number',
+  undefined,
+  (t: Type | FakeUnionOrIntersectionType) => !isFakeUnionOrIntersectionType(t) && t.isNumber(),
+] as const;
+export const booleanTestCase = [
+  'boolean',
+  undefined,
+  (t: Type | FakeUnionOrIntersectionType) =>
+    (!isFakeUnionOrIntersectionType(t) && t.isBoolean()) ||
+    (isFakeUnionOrIntersectionType(t) &&
+      t.join === 'union' &&
+      t.types.length === 2 &&
+      t.types.every(
+        (ut, index) =>
+          !isFakeUnionOrIntersectionType(ut) &&
+          ut.isBooleanLiteral() &&
+          (ut.getText() === ['false', 'true'][index] || ut.getText() === ['true', 'false'][index])
+      )),
+] as const;
+export const booleanLiteralTestCase = [
+  'true',
+  undefined,
+  //eslint-disable-next-line @typescript-eslint/no-unused-vars
+  (t: Type | FakeUnionOrIntersectionType) =>
+    !isFakeUnionOrIntersectionType(t) && t.isBooleanLiteral() && t.getText() === 'true',
+] as const;
+export const stringTestCase = [
+  'string',
+  undefined,
+  (t: Type | FakeUnionOrIntersectionType) => !isFakeUnionOrIntersectionType(t) && t.isString(),
+] as const;
 let typeTestCases: Array<
-  [string, string | undefined, (type: Type | FakeUnionOrIntersectionType, node: Node) => boolean]
+  readonly [string, string | undefined, (type: Type | FakeUnionOrIntersectionType, node: Node) => boolean]
 > = [
-  ['number', undefined, t => !isFakeUnionOrIntersectionType(t) && t.isNumber()],
-  [
-    'boolean',
-    undefined,
-    t =>
-      (!isFakeUnionOrIntersectionType(t) && t.isBoolean()) ||
-      (isFakeUnionOrIntersectionType(t) &&
-        t.join === 'union' &&
-        t.types.length === 2 &&
-        t.types.every(
-          (ut, index) =>
-            !isFakeUnionOrIntersectionType(ut) &&
-            ut.isBooleanLiteral() &&
-            (ut.getText() === ['false', 'true'][index] || ut.getText() === ['true', 'false'][index])
-        )),
-  ],
-  ['true', undefined, t => !isFakeUnionOrIntersectionType(t) && t.isBooleanLiteral() && t.getText() === 'true'],
-  ['string', undefined, t => !isFakeUnionOrIntersectionType(t) && t.isString()],
+  numTestCase,
+  booleanTestCase,
+  booleanLiteralTestCase,
+  stringTestCase,
+  ['"str"', undefined, t => !isFakeUnionOrIntersectionType(t) && t.isStringLiteral() && t.getText() === '"str"'],
   [
     'string & {__brand: "a"}',
     undefined,
@@ -85,7 +105,6 @@ let typeTestCases: Array<
       );
     },
   ],
-  ['"str"', undefined, t => !isFakeUnionOrIntersectionType(t) && t.isStringLiteral() && t.getText() === '"str"'],
   [
     '"a" | "b"',
     undefined,

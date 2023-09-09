@@ -31,26 +31,27 @@ export const isDeafultImplementationWithName =
         //Effect.Effect<never, CompilerPluginError, Option.Option<[{ name: string; types: Type[] }, { name: string; types: Type[] }]>>
         Effect.flatMap(
           Option.match({
-            onNone: () => Effect.fail(new UnionNotAllowedError(node, `Union with ${swaggerfyTsType} not allowed!`)),
-            onSome: Effect.succeed,
-          })
-        ),
-        //Effect.Effect<never, CompilerPluginError, [{ name: string; types: Type[] }, { name: string; types: Type[] }]>>
-        Effect.flatMap(results => {
-          if (results.some(f => f.name !== results[0]!.name)) {
-            return Effect.fail(new UnionNotAllowedError(node, `Union with multiple ${swaggerfyTsType} not allowed!`));
-          }
+            onNone: () => Effect.succeedNone,
+            onSome: results => {
+              if (results.some(f => f.name !== results[0]!.name)) {
+                return Effect.fail(
+                  new UnionNotAllowedError(node, `Union with multiple ${swaggerfyTsType} not allowed!`)
+                );
+              }
 
-          return Effect.succeedSome({
-            name: results[0]!.name,
-            node,
-            type: {
-              fakeUnionOrIntersectionType: true,
-              types: results.map(r => r.type),
-              join: 'union',
+              return Effect.succeedSome({
+                name: results[0]!.name,
+                node,
+                type: {
+                  fakeUnionOrIntersectionType: true,
+                  types: results.map(r => r.type),
+                  join: 'union',
+                },
+              });
             },
-          });
-        })
+          })
+        )
+        //Effect.Effect<never, CompilerPluginError, [{ name: string; types: Type[] }, { name: string; types: Type[] }]>>
       );
     }
 

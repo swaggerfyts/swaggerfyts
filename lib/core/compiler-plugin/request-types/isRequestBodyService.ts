@@ -2,7 +2,6 @@ import { Node, Type } from 'ts-morph';
 import { Context, Effect, Option, pipe, ReadonlyArray } from 'effect';
 import { CompilerPluginError } from '../errors/CompilerPluginError';
 import type { FakeUnionOrIntersectionType } from './util/FakeUnionOrIntersectionType';
-import { UnionNotAllowedError } from '../errors/UnionNotAllowedError';
 import { TypeInferenceFailedError } from '../errors/TypeInferenceFailedError';
 
 export type IsRequestBodyType = (
@@ -20,14 +19,14 @@ export const defaultImplementation = isRequestBodyService.of((node, type) => {
       unionTypes,
       // [Type, Type]
       ReadonlyArray.map(unionType => defaultImplementation(node, unionType)),
-      // [Effect.Effect<never, CompilerPluginError, Option.Option<{ name: string; types: Type[] }>>, Effect.Effect<never, CompilerPluginError, Option.Option<{ name: string; types: Type[] }>>]
+      // [Effect.Effect<never, CompilerPluginError, Option.Option<{ types: Type[] }>>, Effect.Effect<never, CompilerPluginError, Option.Option<{ name: string; types: Type[] }>>]
       Effect.all,
-      //Effect.Effect<never, CompilerPluginError, [Option.Option<{ name: string; types: Type[] }>, Option.Option<{ name: string; types: Type[] }>]>
+      //Effect.Effect<never, CompilerPluginError, [Option.Option<{ types: Type[] }>, Option.Option<{ name: string; types: Type[] }>]>
       Effect.map(Option.all),
-      //Effect.Effect<never, CompilerPluginError, Option.Option<[{ name: string; types: Type[] }, { name: string; types: Type[] }]>>
+      //Effect.Effect<never, CompilerPluginError, Option.Option<[{ types: Type[] }, { name: string; types: Type[] }]>>
       Effect.flatMap(
         Option.match({
-          onNone: () => Effect.fail(new UnionNotAllowedError(node, 'Union with SwaggerfyTsRequestBody not allowed!')),
+          onNone: () => Effect.succeedNone,
           onSome: results =>
             Effect.succeedSome({
               node,

@@ -1,31 +1,31 @@
 import test from 'ava';
 import { Effect, pipe } from 'effect';
-import {
-  isRequestParameterDefaultImplementation,
-  isRequestParameterService,
-} from '../../../compiler-plugin/request-types/isRequestParameterService';
 import { typeTestCases } from '../../../test-util/typeTestCases';
 import { getIsServiceResultFromSourceFile } from '../../../test-util/compiler-plugin/request-types/getIsServiceResultFromSourceFile';
 import { testIsServiceResultEffect } from '../../../test-util/compiler-plugin/request-types/testIsServiceResultEffect';
 import { tsMorphProject } from '../../../test-util/tsMorphProject';
+import {
+  isRequestCookieDefaultImplementation,
+  isRequestCookieService,
+} from '../../../compiler-plugin/request-types/isRequestCookieService';
 
-tsMorphProject.addSourceFileAtPath(__dirname + '/../../../lib/request-types/pathParameter.ts');
+tsMorphProject.addSourceFileAtPath(__dirname + '/../../../lib/request-types/requestCookie.ts');
 
 typeTestCases.forEach(([type, preStatement, predicate]) =>
   test(`Simple Test: ${type}`, t => {
     const sourceFile = tsMorphProject.createSourceFile(
       'test.ts',
-      `import { pathParameter } from './lib/request-types/pathParameter'; ${
+      `import { requestCookie } from './lib/request-types/requestCookie'; ${
         preStatement || ''
-      } const param = pathParameter<${type}, 'asdf'>();`,
+      } const param = requestCookie<${type}, 'abcd'>();`,
       { overwrite: true }
     );
 
     pipe(
-      getIsServiceResultFromSourceFile(isRequestParameterService)(sourceFile),
-      isRequestParameterDefaultImplementation,
+      getIsServiceResultFromSourceFile(isRequestCookieService)(sourceFile),
+      isRequestCookieDefaultImplementation,
       Effect.runSyncExit,
-      testIsServiceResultEffect('asdf', predicate, t)
+      testIsServiceResultEffect('abcd', predicate, t)
     );
   })
 );

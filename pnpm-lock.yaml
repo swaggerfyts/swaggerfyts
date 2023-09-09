@@ -1273,7 +1273,7 @@ packages:
 
   /eslint-plugin-ts-immutable@0.3.0(eslint@8.48.0)(typescript@5.2.2):
     resolution: {integrity: sha512-7+A3mpN1w9lrqU/TtVXF33OwANjzsfZxw167KUHS9UsbCBwjUQfCI5ztC0QHsc5vxvwNuy7qscSkhE+Byr7axA==}
-    deprecated: 'WARNING: This project has been renamed to eslint-plugin-functional. Install using eslint-plugin-functional instead.'
+    deprecated: 'WARNING: This tsMorphProject has been renamed to eslint-plugin-functional. Install using eslint-plugin-functional instead.'
     peerDependencies:
       eslint: '>=6.0.0'
       typescript: '>=3.4.1'

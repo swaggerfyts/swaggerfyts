@@ -1,8 +1,8 @@
 /* eslint-disable security/detect-object-injection */
 
-import {Node, Type} from "ts-morph";
-import {FakeUnionOrIntersectionType} from "../compiler-plugin/request-types/util/FakeUnionOrIntersectionType";
-import {isFakeUnionOrIntersectionType} from "../compiler-plugin/request-types/util/isFakeUnionOrIntersectionType";
+import { Node, Type } from 'ts-morph';
+import { FakeUnionOrIntersectionType } from '../compiler-plugin/request-types/util/FakeUnionOrIntersectionType';
+import { isFakeUnionOrIntersectionType } from '../compiler-plugin/request-types/util/isFakeUnionOrIntersectionType';
 
 const isA = (tA: Type | FakeUnionOrIntersectionType, n: Node) => {
   if (isFakeUnionOrIntersectionType(tA)) {
@@ -208,8 +208,8 @@ let typeTestCases: Array<
         enumTypes[1] !== undefined &&
         enumTypes.every(te => !isFakeUnionOrIntersectionType(te) && te.isEnumLiteral()) &&
         (enumTypes.every(
-            (te, index) => !isFakeUnionOrIntersectionType(te) && te.getLiteralValue() === ['A', 'B'][index]
-          ) ||
+          (te, index) => !isFakeUnionOrIntersectionType(te) && te.getLiteralValue() === ['A', 'B'][index]
+        ) ||
           enumTypes.every(
             (te, index) => !isFakeUnionOrIntersectionType(te) && te.getLiteralValue() === ['B', 'A'][index]
           )) &&
@@ -272,4 +272,4 @@ typeTestCases = typeTestCases.flatMap(([type, preStatement, predicate]) => {
   ];
 });
 
-export {typeTestCases};
+export { typeTestCases };

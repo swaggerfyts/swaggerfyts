@@ -4,7 +4,7 @@ import { CompilerPluginError } from '../errors/CompilerPluginError';
 import type { FakeUnionOrIntersectionType } from './util/FakeUnionOrIntersectionType';
 import { isDeafultImplementationWithName } from './util/isDeafultImplementationWithName';
 
-export type IsRequestParameterType = (
+export type IsRequestCookieType = (
   node: Node,
   type: Type
 ) => Effect.Effect<
@@ -13,9 +13,9 @@ export type IsRequestParameterType = (
   Option.Option<{ name: string; node: Node; type: Type | FakeUnionOrIntersectionType }>
 >;
 
-export const isRequestParameterService = Context.Tag<IsRequestParameterType>();
+export const isRequestCookieService = Context.Tag<IsRequestCookieType>();
 
-export const isRequestParameterDefaultImplementation = Effect.provideService(
-  isRequestParameterService,
-  isRequestParameterService.of(isDeafultImplementationWithName('SwaggerfyTsPathParam'))
+export const isRequestCookieDefaultImplementation = Effect.provideService(
+  isRequestCookieService,
+  isRequestCookieService.of(isDeafultImplementationWithName('SwaggerfyTsRequestCookie'))
 );

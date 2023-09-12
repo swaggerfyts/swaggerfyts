@@ -4,8 +4,8 @@ import { JsonParseError } from '../errors/JsonParseError';
 
 export interface JsonIoService {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  readonly serialize: (jsonUnserialized: any) => Effect.Effect<never, JsonSerializeError, string>;
-  readonly parse: (jsonSerialized: string) => Effect.Effect<never, JsonParseError, unknown>;
+  readonly serialize: (jsonUnserialized: any) => Effect.Effect<unknown, JsonSerializeError, string>;
+  readonly parse: (jsonSerialized: string) => Effect.Effect<unknown, JsonParseError, unknown>;
 }
 
 export const jsonIoService = Context.Tag<JsonIoService>();

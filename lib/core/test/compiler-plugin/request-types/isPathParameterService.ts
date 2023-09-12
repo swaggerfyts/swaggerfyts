@@ -8,6 +8,7 @@ import { typeTestCases } from '../../../test-util/typeTestCases';
 import { getIsServiceResultFromSourceFile } from '../../../test-util/compiler-plugin/request-types/getIsServiceResultFromSourceFile';
 import { testIsServiceResultEffect } from '../../../test-util/compiler-plugin/request-types/testIsServiceResultEffect';
 import { tsMorphProject } from '../../../test-util/tsMorphProject';
+import {assumeAllServicesProvided} from "../../../lib/util/assumeAllServicesProvided";
 
 tsMorphProject.addSourceFileAtPath(__dirname + '/../../../lib/request-types/pathParameter.ts');
 
@@ -24,6 +25,7 @@ typeTestCases.forEach(([type, preStatement, predicate]) =>
     pipe(
       getIsServiceResultFromSourceFile(isPathParameterService)(sourceFile),
       isPathParameterDefaultImplementation,
+      assumeAllServicesProvided,
       Effect.runSyncExit,
       testIsServiceResultEffect('asdf', predicate, t)
     );

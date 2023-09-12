@@ -8,6 +8,7 @@ import {
   isQueryParameterDefaultImplementation,
   isQueryParameterService,
 } from '../../../compiler-plugin/request-types/isQueryParameterService';
+import {assumeAllServicesProvided} from "../../../lib/util/assumeAllServicesProvided";
 
 tsMorphProject.addSourceFileAtPath(__dirname + '/../../../lib/request-types/queryParameter.ts');
 
@@ -24,6 +25,7 @@ typeTestCases.forEach(([type, preStatement, predicate]) =>
     pipe(
       getIsServiceResultFromSourceFile(isQueryParameterService)(sourceFile),
       isQueryParameterDefaultImplementation,
+      assumeAllServicesProvided,
       Effect.runSyncExit,
       testIsServiceResultEffect('yxcv', predicate, t)
     );

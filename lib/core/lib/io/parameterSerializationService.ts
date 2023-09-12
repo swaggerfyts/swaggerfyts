@@ -16,7 +16,7 @@ export type SerializationStrategy = SerializationStrategies['header' | 'cookie']
 export interface ParameterSerializationServiceType {
   readonly supportedSerializationStrategies: SerializationStrategies;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  readonly serialize: (unserialized: any, serializationStrategy: SerializationStrategy) => Effect.Effect<JsonIoService, ParameterSerializeError, string>;
+  readonly serialize: (unserialized: any, serializationStrategy: SerializationStrategy) => Effect.Effect<unknown, ParameterSerializeError, string>;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

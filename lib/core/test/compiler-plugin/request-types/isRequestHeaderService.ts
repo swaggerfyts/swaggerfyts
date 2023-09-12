@@ -8,6 +8,7 @@ import {
   isRequestHeaderDefaultImplementation,
   isRequestHeaderService,
 } from '../../../compiler-plugin/request-types/isRequestHeaderService';
+import {assumeAllServicesProvided} from "../../../lib/util/assumeAllServicesProvided";
 
 tsMorphProject.addSourceFileAtPath(__dirname + '/../../../lib/request-types/requestHeader.ts');
 
@@ -24,6 +25,7 @@ typeTestCases.forEach(([type, preStatement, predicate]) =>
     pipe(
       getIsServiceResultFromSourceFile(isRequestHeaderService)(sourceFile),
       isRequestHeaderDefaultImplementation,
+      assumeAllServicesProvided,
       Effect.runSyncExit,
       testIsServiceResultEffect('qwertz', predicate, t)
     );

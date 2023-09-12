@@ -30,6 +30,7 @@ import {
   isRequestHeaderDefaultImplementation,
   isRequestHeaderService,
 } from '../../../compiler-plugin/request-types/isRequestHeaderService';
+import {assumeAllServicesProvided} from "../../../lib/util/assumeAllServicesProvided";
 
 tsMorphProject.addSourceFileAtPath(__dirname + '/../../../lib/request-types/pathParameter.ts');
 tsMorphProject.addSourceFileAtPath(__dirname + '/../../../lib/request-types/queryParameter.ts');
@@ -58,30 +59,35 @@ typeTestCases.forEach(([type, preStatement, predicate]) =>
     pipe(
       getIsServiceResultFromSourceFile(isPathParameterService)(sourceFile),
       isPathParameterDefaultImplementation,
+      assumeAllServicesProvided,
       Effect.runSyncExit,
       testIsServiceResultEffect('test0', predicate, t)
     );
     pipe(
       getIsServiceResultFromSourceFile(isQueryParameterService)(sourceFile),
       isQueryParameterDefaultImplementation,
+      assumeAllServicesProvided,
       Effect.runSyncExit,
       testIsServiceResultEffect('test1', numTestCase[2], t)
     );
     pipe(
       getIsServiceResultFromSourceFile(isRequestBodyService)(sourceFile),
       isRequestBodyDefaultImplementation,
+      assumeAllServicesProvided,
       Effect.runSyncExit,
       testIsServiceResultEffect(undefined, booleanTestCase[2], t)
     );
     pipe(
       getIsServiceResultFromSourceFile(isRequestCookieService)(sourceFile),
       isRequestCookieDefaultImplementation,
+      assumeAllServicesProvided,
       Effect.runSyncExit,
       testIsServiceResultEffect('test3', booleanLiteralTestCase[2], t)
     );
     pipe(
       getIsServiceResultFromSourceFile(isRequestHeaderService)(sourceFile),
       isRequestHeaderDefaultImplementation,
+      assumeAllServicesProvided,
       Effect.runSyncExit,
       testIsServiceResultEffect('test4', stringTestCase[2], t)
     );

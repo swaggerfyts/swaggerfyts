@@ -3,6 +3,7 @@ import { jsonIoService, jsonIoServiceDefaultImplementation } from '../../../lib/
 import { Cause, Effect, Exit } from 'effect';
 import { JsonSerializeError } from '../../../lib/errors/JsonSerializeError';
 import { JsonParseError } from '../../../lib/errors/JsonParseError';
+import {assumeAllServicesProvided} from "../../../lib/util/assumeAllServicesProvided";
 
 const testCases: Array<[string, unknown, string]> = [
   ['string', 'str', '"str"'],
@@ -17,6 +18,7 @@ testCases.forEach(([testName, input, json]) => {
     const result = jsonIoService.pipe(
       Effect.flatMap(jsonIoService => jsonIoService.serialize(input)),
       jsonIoServiceDefaultImplementation,
+      assumeAllServicesProvided,
       Effect.runSync
     );
 
@@ -27,6 +29,7 @@ testCases.forEach(([testName, input, json]) => {
     const result = jsonIoService.pipe(
       Effect.flatMap(jsonIoService => jsonIoService.parse(json)),
       jsonIoServiceDefaultImplementation,
+      assumeAllServicesProvided,
       Effect.runSync
     );
 
@@ -40,6 +43,7 @@ test('serialize: follows .toJSON function', t => {
   const result = jsonIoService.pipe(
     Effect.flatMap(jsonIoService => jsonIoService.serialize(date)),
     jsonIoServiceDefaultImplementation,
+    assumeAllServicesProvided,
     Effect.runSync
   );
 
@@ -53,6 +57,7 @@ test('serialize: fail', t => {
   const result = jsonIoService.pipe(
     Effect.flatMap(jsonIoService => jsonIoService.serialize(input)),
     jsonIoServiceDefaultImplementation,
+    assumeAllServicesProvided,
     Effect.runSyncExit
   );
 
@@ -71,6 +76,7 @@ test('parse: fail', t => {
   const result = jsonIoService.pipe(
     Effect.flatMap(jsonIoService => jsonIoService.parse('"unclosed string')),
     jsonIoServiceDefaultImplementation,
+    assumeAllServicesProvided,
     Effect.runSyncExit
   );
 

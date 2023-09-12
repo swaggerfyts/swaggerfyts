@@ -7,7 +7,7 @@ import { TypeInferenceFailedError } from '../errors/TypeInferenceFailedError';
 export type IsRequestBodyType = (
   node: Node,
   type: Type
-) => Effect.Effect<never, CompilerPluginError, Option.Option<{ node: Node; type: Type | FakeUnionOrIntersectionType }>>;
+) => Effect.Effect<unknown, CompilerPluginError, Option.Option<{ node: Node; type: Type | FakeUnionOrIntersectionType }>>;
 
 export const isRequestBodyService = Context.Tag<IsRequestBodyType>();
 

@@ -8,6 +8,7 @@ import {
   isRequestBodyService,
 } from '../../../compiler-plugin/request-types/isRequestBodyService';
 import { testIsServiceResultEffect } from '../../../test-util/compiler-plugin/request-types/testIsServiceResultEffect';
+import {assumeAllServicesProvided} from "../../../lib/util/assumeAllServicesProvided";
 
 tsMorphProject.addSourceFileAtPath(__dirname + '/../../../lib/request-types/requestBody.ts');
 
@@ -24,6 +25,7 @@ typeTestCases.forEach(([type, preStatement, predicate]) =>
     pipe(
       getIsServiceResultFromSourceFile(isRequestBodyService)(sourceFile),
       isRequestBodyDefaultImplementation,
+      assumeAllServicesProvided,
       Effect.runSyncExit,
       testIsServiceResultEffect(undefined, predicate, t)
     );

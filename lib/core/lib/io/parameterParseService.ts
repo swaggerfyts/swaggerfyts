@@ -31,16 +31,16 @@ export interface ParameterParseServiceType<ParseContext> {
     position: ParameterPosition,
     type: Type | FakeUnionOrIntersectionType,
     node: Node
-  ) => Effect.Effect<never, CompilerPluginError, ParseContext>;
+  ) => Effect.Effect<unknown, CompilerPluginError, ParseContext>;
   readonly parse: (
     serialized: string,
     parseContext: ParseContext
-  ) => Effect.Effect<never, ParameterParseError, unknown>;
+  ) => Effect.Effect<unknown, ParameterParseError, unknown>;
   readonly parseQueryParameters: <const Keys extends string>(
     rawQueryString: string,
     paramNamesAndContext: Record<Keys, ParseContext>
   ) => EffectAllFromRecordOnErrorReturnPartialRecord<
-    Record<Keys, Effect.Effect<never, ParameterParseError | RequestDoesNotContainError, unknown>>
+    Record<Keys, Effect.Effect<unknown, ParameterParseError | RequestDoesNotContainError, unknown>>
   >;
 }
 
@@ -191,7 +191,7 @@ const defaultImplementation: ParameterParseServiceType<DefaultParseContext> = {
   getParserContext: (position, type, node) => {
     const parser = (
       type: Type | FakeUnionOrIntersectionType
-    ): Effect.Effect<never, CompilerPluginError, ParserResult> => {
+    ): Effect.Effect<unknown, CompilerPluginError, ParserResult> => {
       if (isFakeUnionOrIntersectionType(type) || type.isUnion() || type.isEnum() || type.isIntersection()) {
         const join = isFakeUnionOrIntersectionType(type) ? type.join : type.isIntersection() ? 'intersection' : 'union';
         const subTypes = isFakeUnionOrIntersectionType(type)

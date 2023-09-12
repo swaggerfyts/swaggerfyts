@@ -8,6 +8,7 @@ import {
   isRequestCookieDefaultImplementation,
   isRequestCookieService,
 } from '../../../compiler-plugin/request-types/isRequestCookieService';
+import {assumeAllServicesProvided} from "../../../lib/util/assumeAllServicesProvided";
 
 tsMorphProject.addSourceFileAtPath(__dirname + '/../../../lib/request-types/requestCookie.ts');
 
@@ -24,6 +25,7 @@ typeTestCases.forEach(([type, preStatement, predicate]) =>
     pipe(
       getIsServiceResultFromSourceFile(isRequestCookieService)(sourceFile),
       isRequestCookieDefaultImplementation,
+      assumeAllServicesProvided,
       Effect.runSyncExit,
       testIsServiceResultEffect('abcd', predicate, t)
     );

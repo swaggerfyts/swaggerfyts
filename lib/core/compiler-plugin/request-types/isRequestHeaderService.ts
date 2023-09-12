@@ -8,7 +8,7 @@ export type IsRequestHeaderType = (
   node: Node,
   type: Type
 ) => Effect.Effect<
-  never,
+  unknown,
   CompilerPluginError,
   Option.Option<{ name: string; node: Node; type: Type | FakeUnionOrIntersectionType }>
 >;

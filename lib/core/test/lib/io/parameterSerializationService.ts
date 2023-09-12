@@ -6,6 +6,7 @@ import {
 } from "../../../lib/io/parameterSerializationService";
 import {Cause, Effect, Exit} from "effect";
 import {jsonIoService, jsonIoServiceDefaultImplementation} from "../../../lib/io/jsonIoService";
+import {assumeAllServicesProvided} from "../../../lib/util/assumeAllServicesProvided";
 
 type ExpectedError = {errorClass: string, message: string};
 type Result = string | ExpectedError;
@@ -66,6 +67,7 @@ testCases.forEach(([value, strategies], i) =>
           Effect.flatMap(({parameterSerializationService}) => parameterSerializationService.serialize(value, input.strategy)),
           jsonIoServiceDefaultImplementation,
           parameterSerializationServiceDefaultImplementation,
+          assumeAllServicesProvided,
           Effect.runSyncExit,
           result => {
             if (Exit.isFailure(result)) {

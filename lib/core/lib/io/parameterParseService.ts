@@ -1,5 +1,4 @@
 import { Context, Effect, pipe, ReadonlyArray, ReadonlyRecord, String, Tuple } from 'effect';
-import { ParameterSerializeError } from '../errors/ParameterSerializeError';
 import { ParameterParseError } from '../errors/ParameterParseError';
 import { FakeUnionOrIntersectionType } from '../../compiler-plugin/request-types/util/FakeUnionOrIntersectionType';
 import { Node, Type } from 'ts-morph';
@@ -15,6 +14,7 @@ import {
   effectAllFromRecordOnErrorReturnPartialRecord,
   EffectAllFromRecordOnErrorReturnPartialRecord,
 } from '../util/effectAllFromRecordOnErrorReturnPartialRecord';
+import {ParameterSerializationStrategies} from "./util/ParameterSerializationStrategies";
 
 export type ParameterPosition = 'query parameter' | 'path parameter' | 'header' | 'cookie';
 
@@ -25,74 +25,8 @@ export type ParameterPosition = 'query parameter' | 'path parameter' | 'header' 
  * Each implementation of this service must describe what serialization strategies are supported. See
  * https://swagger.io/docs/specification/serialization/ for a description of the available options.
  */
-export interface ParameterIoServiceType<ParseContext> {
-  readonly supportedSerializationStrategies: {
-    pathParameter: Record<
-      'primitive' | 'array' | 'object',
-      ReadonlyArray.NonEmptyArray<
-        | {
-            style: 'simple' | 'label' | 'matrix';
-            explode: boolean;
-          }
-        | { content: string }
-      >
-    >;
-    queryParameter: {
-      primitive: ReadonlyArray.NonEmptyArray<
-        | {
-            style: 'form';
-            explode: boolean;
-          }
-        | { content: string }
-      >;
-      array: ReadonlyArray.NonEmptyArray<
-        | {
-            style: 'form' | 'spaceDelimited' | 'pipeDelimited';
-            explode: boolean;
-          }
-        | { content: string }
-      >;
-      object: ReadonlyArray.NonEmptyArray<
-        | {
-            style: 'form';
-            explode: boolean;
-          }
-        | {
-            style: 'deepObject';
-            explode: true;
-          }
-        | { content: string }
-      >;
-    };
-    header: Record<
-      'primitive' | 'array' | 'object',
-      ReadonlyArray.NonEmptyArray<
-        | {
-            style: 'simple';
-            explode: boolean;
-          }
-        | { content: string }
-      >
-    >;
-    cookie: {
-      primitive: ReadonlyArray.NonEmptyArray<
-        | {
-            style: 'form';
-            explode: boolean;
-          }
-        | { content: string }
-      >;
-    } & Record<
-      'array' | 'object',
-      ReadonlyArray.NonEmptyArray<
-        | {
-            style: 'form';
-            explode: false;
-          }
-        | { content: string }
-      >
-    >;
-  };
+export interface ParameterParseServiceType<ParseContext> {
+  readonly supportedSerializationStrategies: ParameterSerializationStrategies;
   readonly getParserContext: (
     position: ParameterPosition,
     type: Type | FakeUnionOrIntersectionType,
@@ -108,12 +42,10 @@ export interface ParameterIoServiceType<ParseContext> {
   ) => EffectAllFromRecordOnErrorReturnPartialRecord<
     Record<Keys, Effect.Effect<never, ParameterParseError | RequestDoesNotContainError, unknown>>
   >;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  readonly serialize: (unserialized: any) => Effect.Effect<never, ParameterSerializeError, string>;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const parameterIoService = Context.Tag<ParameterIoServiceType<any>>();
+export const parameterParseService = Context.Tag<ParameterParseServiceType<any>>();
 
 type PrimitiveParserResult = 'null' | 'boolean' | 'string' | 'number';
 type ArrayParserResult = `array_${PrimitiveParserResult}`;
@@ -125,7 +57,7 @@ const toPrimitiveParserResult = (i: ArrayParserResult | ObjectParserResult) =>
   (isArrayResult(i) ? i.substring('array_'.length) : i.substring('object_'.length)) as PrimitiveParserResult;
 
 type DefaultParseContext = { position: ParameterPosition; result: ParserResult };
-const defaultImplementation: ParameterIoServiceType<DefaultParseContext> = {
+const defaultImplementation: ParameterParseServiceType<DefaultParseContext> = {
   supportedSerializationStrategies: {
     pathParameter: {
       primitive: [
@@ -673,85 +605,8 @@ const defaultImplementation: ParameterIoServiceType<DefaultParseContext> = {
       effectAllFromRecordOnErrorReturnPartialRecord
     );
   },
-  serialize: unserialized => {
-    if (typeof unserialized === 'function') {
-      return Effect.fail(new ParameterSerializeError('Functions cannot be serialized!'));
-    }
-    if (typeof unserialized === 'symbol') {
-      return Effect.fail(new ParameterSerializeError('Symbols cannot be serialized!'));
-    }
-
-    if (unserialized === null || unserialized === undefined) {
-      return Effect.succeed('');
-    }
-
-    if (Array.isArray(unserialized)) {
-      return pipe(
-        unserialized,
-        // [1, {'c': true}, false]
-        ReadonlyArray.map(defaultImplementation.serialize),
-        // [Effect<..., ..., '1'>, Effect<..., ..., 'c,true'>, Effect<..., ..., 'false'>]
-        Effect.all,
-        // Effect<..., ..., ['1', 'c,true', 'false]>
-        Effect.map(ReadonlyArray.map(encodeURIComponent)),
-        // Effect<..., ..., ['1', 'c%2Ctrue', 'false]>
-        Effect.map(ReadonlyArray.join(','))
-        // Effect<..., ..., '1,c%2Ctrue,false'>
-      );
-    }
-
-    if (typeof unserialized === 'object') {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if ('toJSON' in unserialized && typeof unserialized.toJSON === 'function') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        return defaultImplementation.serialize(unserialized.toJSON());
-      }
-
-      return pipe(
-        unserialized,
-        // {a: 1, b: {c: true}, [Symbol()]: 'hidden'}
-        ReadonlyRecord.toEntries,
-        // [['a', 1], ['b', {'c': true}]]
-        ReadonlyArray.flatten,
-        // ['a', 1, 'b', {'c': true}]
-        ReadonlyArray.map(defaultImplementation.serialize),
-        // [Effect<..., ..., 'a'>, Effect<..., ..., '1'>, Effect<..., ..., 'b'>, Effect<..., ..., 'c,>true']
-        Effect.all,
-        // Effect<..., ..., ['a', '1', 'b', 'c,true']>
-        Effect.map(ReadonlyArray.map(encodeURIComponent)),
-        // Effect<..., ..., ['a', '1', 'b', 'c%2Ctrue']>
-        Effect.map(ReadonlyArray.join(','))
-        // Effect<..., ..., 'a,1,b,c%2Ctrue'>
-      );
-    }
-
-    if (typeof unserialized === 'boolean') {
-      return Effect.succeed(unserialized ? 'true' : 'false');
-    }
-
-    if (typeof unserialized === 'number') {
-      if (Number.isNaN(unserialized)) {
-        return Effect.fail(new ParameterSerializeError('Number "NaN" cannot be serialized!'));
-      }
-      if (!Number.isFinite(unserialized)) {
-        return Effect.fail(new ParameterSerializeError('Infinite number cannot be serialized!'));
-      }
-
-      return pipe(unserialized, JSON.stringify, Effect.succeed);
-    }
-
-    if (typeof unserialized === 'string') {
-      return pipe(unserialized, encodeURIComponent, Effect.succeed);
-    }
-
-    return Effect.fail(
-      new ParameterSerializeError(
-        `Unhandled typeof: "${typeof unserialized}". This is a bug in swaggerfyts, please report it.`
-      )
-    );
-  },
 };
 export const parameterIoServiceDefaultImplementation = Effect.provideService(
-  parameterIoService,
-  parameterIoService.of(defaultImplementation)
+  parameterParseService,
+  parameterParseService.of(defaultImplementation)
 );

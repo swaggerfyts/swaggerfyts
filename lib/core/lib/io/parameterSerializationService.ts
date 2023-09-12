@@ -2,7 +2,7 @@ import { Context, Effect, pipe, ReadonlyArray, ReadonlyRecord } from 'effect';
 import { ParameterSerializeError } from '../errors/ParameterSerializeError';
 import {ParameterSerializationStrategies} from "./util/ParameterSerializationStrategies";
 import {Evaluate} from "../util/Evaluate";
-import {JsonIoService, jsonIoService} from "./jsonIoService";
+import {jsonIoService} from "./jsonIoService";
 
 export type SerializationStrategies = Evaluate<Pick<ParameterSerializationStrategies, 'header' | 'cookie'>>;
 export type SerializationStrategy = SerializationStrategies['header' | 'cookie']['object' | 'array' | 'primitive'][0];

@@ -20,8 +20,9 @@ export type ParameterPosition = 'query parameter' | 'path parameter' | 'header' 
 
 /**
  * Parse parameters service. Parsing works as follows:
- * 1) For each type that needs to be parsed, the compiler api will create ParseContext, by calling "getParseContext".
+ * 1) For each type that needs to be parsed, the compiler plugin will create ParseContext, by calling "getParseContext".
  * 2) The parsing context is then given to the parse functions when parsing.
+ *
  * Each implementation of this service must describe what serialization strategies are supported. See
  * https://swagger.io/docs/specification/serialization/ for a description of the available options.
  */
@@ -47,6 +48,8 @@ export interface ParameterParseServiceType<ParseContext> {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const parameterParseService = Context.Tag<ParameterParseServiceType<any>>();
 
+
+
 type PrimitiveParserResult = 'null' | 'boolean' | 'string' | 'number';
 type ArrayParserResult = `array_${PrimitiveParserResult}`;
 type ObjectParserResult = `object_${PrimitiveParserResult}`;
@@ -56,7 +59,7 @@ const isObjectResult = (i: ParserResult): i is ObjectParserResult => i.startsWit
 const toPrimitiveParserResult = (i: ArrayParserResult | ObjectParserResult) =>
   (isArrayResult(i) ? i.substring('array_'.length) : i.substring('object_'.length)) as PrimitiveParserResult;
 
-type DefaultParseContext = { position: ParameterPosition; result: ParserResult };
+export type DefaultParseContext = { position: ParameterPosition; result: ParserResult };
 const defaultImplementation: ParameterParseServiceType<DefaultParseContext> = {
   supportedSerializationStrategies: {
     pathParameter: {
@@ -190,8 +193,13 @@ const defaultImplementation: ParameterParseServiceType<DefaultParseContext> = {
   },
   getParserContext: (position, type, node) => {
     const parser = (
-      type: Type | FakeUnionOrIntersectionType
+      type: Type | FakeUnionOrIntersectionType,
+      errorPrefix: string = '',
     ): Effect.Effect<unknown, CompilerPluginError, ParserResult> => {
+      if (errorPrefix !== '') {
+        errorPrefix += ' ';
+      }
+
       if (isFakeUnionOrIntersectionType(type) || type.isUnion() || type.isEnum() || type.isIntersection()) {
         const join = isFakeUnionOrIntersectionType(type) ? type.join : type.isIntersection() ? 'intersection' : 'union';
         const subTypes = isFakeUnionOrIntersectionType(type)
@@ -204,22 +212,22 @@ const defaultImplementation: ParameterParseServiceType<DefaultParseContext> = {
           return pipe(
             subTypes,
             // [Type, Type]
-            ReadonlyArray.map(parser),
+            ReadonlyArray.map(i => parser(i, `${errorPrefix}in union:`)),
             // [Effect<..., ..., 'string'>, Effect<..., ..., 'string'>]
             Effect.all,
             // Effect<..., ..., ['string', 'string'>]>
             Effect.flatMap(results => {
               if (results[0] === undefined) {
                 return Effect.fail(
-                  new TypeInferenceFailedError(node, 'After identifying a union, the union types cannot be inferred')
+                  new TypeInferenceFailedError(node, `${errorPrefix}after identifying a union, the union types cannot be inferred`)
                 );
               }
-              return results.every(result => result === result[0])
+              return results.every(result => result === results[0])
                 ? Effect.succeed(results[0])
                 : Effect.fail(
                     new TypeNotSupportedError(
                       node,
-                      `union of different types (detected ${results.join(', ')})`,
+                      `${errorPrefix}union of different types (detected ${results.join(', ')})`,
                       position
                     )
                   );
@@ -230,7 +238,7 @@ const defaultImplementation: ParameterParseServiceType<DefaultParseContext> = {
         return pipe(
           subTypes,
           // [Type, Type]
-          ReadonlyArray.map(parser),
+          ReadonlyArray.map(i => parser(i, `${errorPrefix}in intersection:`)),
           // [Effect<..., ..., 'string'>, Effect<..., ..., 'string'>]
           Effect.all,
           // Effect<..., ..., ['string', 'string'>]>
@@ -257,40 +265,62 @@ const defaultImplementation: ParameterParseServiceType<DefaultParseContext> = {
             return Effect.fail(
               new TypeNotSupportedError(
                 node,
-                `intersection of different types (detected ${results.join(', ')})`,
+                `${errorPrefix}intersection of different types (detected ${results.join(', ')})`,
                 position
               )
             );
           })
         );
       }
+      if (type.isAny()) {
+        return Effect.fail(
+          new TypeNotSupportedError(node, `${errorPrefix}any`, position, '(use string instead)')
+        );
+      }
+      if (type.isUnknown()) {
+        return Effect.fail(
+          new TypeNotSupportedError(node, `${errorPrefix}unknown`, position, '(use string instead)')
+        );
+      }
+      if (type.isNever()) {
+        return Effect.fail(
+          new TypeNotSupportedError(node, `${errorPrefix}never`, position, '(use string instead)')
+        );
+      }
+
       if (type.isNull() || type.isUndefined() || type.isVoid()) {
         return Effect.succeed('null');
       }
       if (type.isBoolean() || type.isBooleanLiteral()) {
         return Effect.succeed('boolean');
       }
-      if (type.isString()) {
+      if (type.isString() || type.isStringLiteral()) {
         return Effect.succeed('string');
       }
-      if (type.isNumber()) {
+      if (type.isNumber() || type.isNumberLiteral()) {
         return Effect.succeed('number');
       }
-      if (type.isArray()) {
-        const arrayType = type.getArrayElementType();
-        if (arrayType === undefined) {
+      if (type.isArray() || type.isTuple()) {
+        const arrayType: Type | FakeUnionOrIntersectionType | undefined = type.isArray()
+          ? type.getArrayElementType()
+          : {
+            fakeUnionOrIntersectionType: true,
+            types: type.getTupleElements(),
+            join: 'union'
+          };
+        if (arrayType === undefined || (isFakeUnionOrIntersectionType(arrayType) && arrayType.types.length === 0)) {
           return Effect.fail(
-            new TypeInferenceFailedError(node, 'After identifying an array, the type of the array cannot be inferred')
+            new TypeInferenceFailedError(node, `${errorPrefix}After identifying an array or tuple, the type of the array cannot be inferred`)
           );
         }
         return pipe(
-          parser(arrayType),
+          parser(arrayType, `${errorPrefix}in ${type.isArray() ? 'array' : 'tuple'}:`),
           Effect.flatMap(subResult => {
             if (isArrayResult(subResult)) {
-              return Effect.fail(new TypeNotSupportedError(node, 'multidimensional arrays', position));
+              return Effect.fail(new TypeNotSupportedError(node, `${errorPrefix}multidimensional arrays`, position));
             }
             if (isObjectResult(subResult)) {
-              return Effect.fail(new TypeNotSupportedError(node, 'array of objects', position));
+              return Effect.fail(new TypeNotSupportedError(node, `${errorPrefix}array of objects`, position));
             }
             return Effect.succeed(`array_${subResult}` as const);
           })
@@ -301,7 +331,7 @@ const defaultImplementation: ParameterParseServiceType<DefaultParseContext> = {
         if (toJSONProperty !== undefined) {
           if (!propertyIsFunction(toJSONProperty)) {
             return Effect.fail(
-              new TypeNotSupportedError(node, 'object contains property "toJSON" which isn\'t a function', position)
+              new TypeNotSupportedError(node, `${errorPrefix}object contains property "toJSON" which isn't a function`, position)
             );
           }
 
@@ -310,7 +340,7 @@ const defaultImplementation: ParameterParseServiceType<DefaultParseContext> = {
             return Effect.fail(
               new TypeNotSupportedError(
                 node,
-                'object contains function "toJSON", but signature cannot be inferred',
+                `${errorPrefix}object contains function "toJSON", but signature cannot be inferred`,
                 position
               )
             );
@@ -326,7 +356,7 @@ const defaultImplementation: ParameterParseServiceType<DefaultParseContext> = {
                     types,
                     join: 'union',
                   } satisfies FakeUnionOrIntersectionType),
-            parser
+            i => parser(i, `${errorPrefix}signature of toJSON:`)
           );
         }
 
@@ -338,12 +368,16 @@ const defaultImplementation: ParameterParseServiceType<DefaultParseContext> = {
           ReadonlyArray.map(property =>
             Tuple.tuple(property.getName(), propertyIsFunction(property) ? undefined : property.getTypeAtLocation(node))
           ),
+          ReadonlyArray.appendAll([
+            Tuple.tuple('__StringIndexType', type.getStringIndexType()),
+            Tuple.tuple('__NumberIndexType', type.getNumberIndexType()),
+          ]),
           // [['a', Type], ['b', Type], ['b', undefined]]
           ReadonlyArray.filter((tuple): tuple is [string, Type] =>
-            pipe(tuple, Tuple.getSecond, type => type !== undefined)
+            pipe(tuple, Tuple.getSecond, type => type !== undefined && !type.isNever())
           ),
           // [['a', Type], ['b', Type]]
-          ReadonlyArray.map(Tuple.mapSecond(parser)),
+          ReadonlyArray.map(tuple => Tuple.mapSecond(tuple, i => parser(i, `${errorPrefix}object property ${Tuple.getFirst(tuple)}:`))),
           // [['a', Effect<..., ..., 'number'>], ['b', Effect<..., ..., 'boolean'>]]
           ReadonlyArray.map(([name, effect]) => Effect.map(effect, result => Tuple.tuple(name, result))),
           // [Effect<..., ..., ['a', 'number']>, Effect<..., ..., ['b', 'boolean']>]
@@ -357,7 +391,7 @@ const defaultImplementation: ParameterParseServiceType<DefaultParseContext> = {
                   return Effect.fail(
                     new TypeNotSupportedError(
                       node,
-                      'To enable compatibility with the "deepObject" serialization style, object property keys containing "[" are',
+                      `${errorPrefix}object property ${name}: To enable compatibility with the "deepObject" serialization style, object property keys containing "[" are`,
                       position
                     )
                   );
@@ -366,7 +400,7 @@ const defaultImplementation: ParameterParseServiceType<DefaultParseContext> = {
                   return Effect.fail(
                     new TypeNotSupportedError(
                       node,
-                      'To enable compatibility with the "deepObject" serialization style, object property keys containing "]" are',
+                      `${errorPrefix}object property ${name}: To enable compatibility with the "deepObject" serialization style, object property keys containing "]" are`,
                       position
                     )
                   );
@@ -379,30 +413,31 @@ const defaultImplementation: ParameterParseServiceType<DefaultParseContext> = {
                 return Effect.fail(
                   new TypeNotSupportedError(
                     node,
-                    `object values containing different types (${first[0]}=${first[1]} and ${name}=${result})`,
+                    `${errorPrefix}object values containing different types (${first[0]}=${first[1]} and ${name}=${result})`,
                     position
                   )
                 );
               }
             }
             if (first === undefined) {
-              return Effect.fail(new TypeNotSupportedError(node, 'empty object', position));
+              return Effect.fail(new TypeNotSupportedError(node, `${errorPrefix}empty object`, position));
             }
             if (isObjectResult(first[1])) {
               return Effect.fail(
-                new TypeNotSupportedError(node, `object (property ${first[0]}) containing subobject`, position)
+                new TypeNotSupportedError(node, `${errorPrefix}object (property ${first[0]}) containing subobject`, position)
               );
             }
             if (isArrayResult(first[1])) {
               return Effect.fail(
-                new TypeNotSupportedError(node, `object (property ${first[0]}) containing array`, position)
+                new TypeNotSupportedError(node, `${errorPrefix}object (property ${first[0]}) containing array`, position)
               );
             }
             return Effect.succeed(`object_${first[1]}` satisfies ObjectParserResult);
           })
         );
       }
-      return Effect.fail(new TypeInferenceFailedError(node, 'Type not identified by parser'));
+
+      return Effect.fail(new TypeInferenceFailedError(node, `${errorPrefix}Type not identified by parser`));
     };
 
     return pipe(
@@ -413,7 +448,7 @@ const defaultImplementation: ParameterParseServiceType<DefaultParseContext> = {
   },
   parse: (serialized, context) => {
     const result = context.result;
-    if (result === 'null' && ['null', '', encodeURIComponent('\0')].includes(serialized)) {
+    if (result === 'null' && ['null', '', '\0'].includes(serialized)) {
       return Effect.succeed(null);
     } else if (
       result === 'boolean' &&
@@ -421,7 +456,7 @@ const defaultImplementation: ParameterParseServiceType<DefaultParseContext> = {
     ) {
       return Effect.succeed(['true', 'True', 'TRUE', '1'].includes(serialized));
     } else if (result === 'string') {
-      return pipe(serialized, String.trim, decodeURIComponent, Effect.succeed);
+      return pipe(serialized, String.trim, Effect.succeed);
     } else if (result === 'number') {
       const num = Number.parseFloat(serialized);
       if (!Number.isNaN(num)) {
@@ -437,15 +472,12 @@ const defaultImplementation: ParameterParseServiceType<DefaultParseContext> = {
         String.split(','),
         // ['a%20', '1', 'b', '2', 'c', '3']
         parts => {
-          if (parts.every(part => part.includes('=') || part.includes(encodeURIComponent('=')))) {
+          if (parts.every(part => part.includes('='))) {
             //we assume style is key0=value0,key1=value1,key2=value2
             return pipe(
               parts,
               // ['a%20=1', 'b=2', 'c=3']
               ReadonlyArray.map(part => {
-                if (!part.includes('=')) {
-                  part = part.replace(encodeURIComponent('='), '='); //this only replaces the first occurrence!
-                }
                 const positionEquals = part.indexOf('='); //position of first =
                 return Tuple.tuple(part.substring(0, positionEquals), part.substring(positionEquals + 1));
               }),
@@ -530,16 +562,12 @@ const defaultImplementation: ParameterParseServiceType<DefaultParseContext> = {
       rawQueryString = rawQueryString.substring(1);
     }
 
-    //at this point, we only want to decode the query param keys, not the values. This way we can reuse the "parse" implementation
-    const parsedQueryArgs = pipe(
-      querystring.parse(rawQueryString, undefined, undefined, { decodeURIComponent: s => s }),
-      mapKey(k => pipe(k, String.trim, decodeURIComponent))
-    );
+    const parsedQueryArgs = querystring.parse(rawQueryString);
 
     return pipe(
       paramNamesAndContext,
       ReadonlyRecord.map(
-        (context, name): Effect.Effect<never, ParameterParseError | RequestDoesNotContainError, unknown> => {
+        (context, name): Effect.Effect<unknown, ParameterParseError | RequestDoesNotContainError, unknown> => {
           const unexpectedArrayFailure = (param: string[], fullName: string) => {
             const input = `?${fullName}=${param.join(`&${fullName}=`)}`;
             return Effect.fail(new ParameterParseError(input, context, 'no duplicate values allowed'));
@@ -606,7 +634,7 @@ const defaultImplementation: ParameterParseServiceType<DefaultParseContext> = {
     );
   },
 };
-export const parameterIoServiceDefaultImplementation = Effect.provideService(
+export const parameterParseServiceDefaultImplementation = Effect.provideService(
   parameterParseService,
   parameterParseService.of(defaultImplementation)
 );

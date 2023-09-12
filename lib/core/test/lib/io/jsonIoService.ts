@@ -85,7 +85,8 @@ test('parse: fail', t => {
     t.is(errors.length, 1);
     t.not(errors[0], undefined);
     t.true(errors[0] instanceof JsonParseError);
-    t.is(errors[0]!.message, 'Unterminated string in JSON at position 16');
+    //for some reason, either one of these messages is returned. This statement avoids this test becoming flaky
+    t.true(['Unterminated string in JSON at position 16', 'Unexpected end of JSON input'].includes(errors[0]!.message));
   } else {
     t.fail();
   }

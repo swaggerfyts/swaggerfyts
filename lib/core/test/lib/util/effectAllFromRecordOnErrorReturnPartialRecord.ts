@@ -1,10 +1,11 @@
 import test from 'ava';
-import { Cause, Effect, Exit, pipe, ReadonlyRecord } from 'effect';
+import {Cause, Effect, Exit, pipe, ReadonlyRecord} from 'effect';
 import {
   EffectAllFromRecordOnErrorReturnPartialRecord,
   effectAllFromRecordOnErrorReturnPartialRecord,
 } from '../../../lib/util/effectAllFromRecordOnErrorReturnPartialRecord';
 import { expectTypeOf } from 'expect-type';
+import {assumeAllServicesProvided} from "../../../lib/util/assumeAllServicesProvided";
 
 test('all success', t => {
   const input = {
@@ -112,6 +113,29 @@ test('error union', t => {
   >();
 
   const result = Effect.runSync(resultEffect);
+  expectTypeOf(result).toHaveProperty('a').toMatchTypeOf<1>();
+  expectTypeOf(result).toHaveProperty('b').toMatchTypeOf<2>();
+  expectTypeOf(result).toHaveProperty('c').toMatchTypeOf<3>();
+
+  t.deepEqual(result, { a: 1, b: 2, c: 3 });
+});
+
+test('context union', t => {
+  type ServiceA = {type: "serviceA"}
+  type ServiceB = {type: "serviceB"}
+
+  const input = {
+    a: Effect.succeed(1) as Effect.Effect<ServiceA, never, 1>,
+    b: Effect.succeed(2) as Effect.Effect<ServiceB, never, 2>,
+    c: Effect.succeed(3) as Effect.Effect<never, never, 3>,
+  };
+
+  const resultEffect = effectAllFromRecordOnErrorReturnPartialRecord(input);
+  expectTypeOf(resultEffect).toMatchTypeOf<
+    Effect.Effect<ServiceA | ServiceB, never, { a: 1; b: 2; c: 3 }>
+  >();
+
+  const result = pipe(resultEffect, assumeAllServicesProvided, Effect.runSync);
   expectTypeOf(result).toHaveProperty('a').toMatchTypeOf<1>();
   expectTypeOf(result).toHaveProperty('b').toMatchTypeOf<2>();
   expectTypeOf(result).toHaveProperty('c').toMatchTypeOf<3>();

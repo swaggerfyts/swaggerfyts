@@ -3,7 +3,7 @@ import { Cause, Effect, Exit, pipe, ReadonlyRecord } from 'effect';
 import {
   EffectAllFromRecordOnErrorReturnPartialRecord,
   effectAllFromRecordOnErrorReturnPartialRecord,
-} from '../../util/effectAllFromRecordOnErrorReturnPartialRecord';
+} from '../../../lib/util/effectAllFromRecordOnErrorReturnPartialRecord';
 import { expectTypeOf } from 'expect-type';
 
 test('all success', t => {

@@ -1,5 +1,5 @@
 import test from 'ava';
-import { mapKey } from '../../util/mapKeys';
+import { mapKey } from '../../../lib/util/mapKeys';
 import { expectTypeOf } from 'expect-type';
 
 test('mapKey', t => {

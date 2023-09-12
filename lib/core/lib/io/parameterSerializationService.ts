@@ -7,6 +7,12 @@ import {JsonIoService, jsonIoService} from "./jsonIoService";
 export type SerializationStrategies = Evaluate<Pick<ParameterSerializationStrategies, 'header' | 'cookie'>>;
 export type SerializationStrategy = SerializationStrategies['header' | 'cookie']['object' | 'array' | 'primitive'][0];
 
+/**
+ * Parameter serialization service.
+ *
+ * Each implementation of this service must describe what serialization strategies are supported. See
+ * https://swagger.io/docs/specification/serialization/ for a description of the available options.
+ */
 export interface ParameterSerializationServiceType {
   readonly supportedSerializationStrategies: SerializationStrategies;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

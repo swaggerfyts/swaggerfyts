@@ -215,6 +215,59 @@ let typeTestCases: Array<
           (isA(types[2], n) && isB(types[1], n) && isC(types[0], n)))
       );
     },
+  ],[
+    '{ a: string; } & { strLiteral: "a" | "b"; } & { str: string; }',
+    undefined,
+    (t, n) => {
+      const isStrLiteral = (tA: Type | FakeUnionOrIntersectionType, n: Node) => {
+        if (isFakeUnionOrIntersectionType(tA)) {
+          return false;
+        }
+        const prop = tA.getProperty('strLiteral');
+        return (
+          !isFakeUnionOrIntersectionType(tA) &&
+          tA.isObject() &&
+          tA.getProperties().length === 1 &&
+          prop !== undefined &&
+          prop.getTypeAtLocation(n).isUnion() &&
+          prop.getTypeAtLocation(n).getUnionTypes().length === 2 &&
+          prop.getTypeAtLocation(n).getUnionTypes().every(tu => tu.isStringLiteral()) &&
+          (
+            prop.getTypeAtLocation(n).getUnionTypes().every((tu, index) => tu.getText() === ['"a"', '"b"'][index]) ||
+            prop.getTypeAtLocation(n).getUnionTypes().every((tu, index) => tu.getText() === ['"b"', '"a"'][index])
+          )
+        );
+      };
+      const isStr = (tA: Type | FakeUnionOrIntersectionType, n: Node) => {
+        if (isFakeUnionOrIntersectionType(tA)) {
+          return false;
+        }
+        const prop = tA.getProperty('str');
+        return (
+          !isFakeUnionOrIntersectionType(tA) &&
+          tA.isObject() &&
+          tA.getProperties().length === 1 &&
+          prop !== undefined &&
+          prop.getTypeAtLocation(n).isString()
+        );
+      };
+
+      const types = isFakeUnionOrIntersectionType(t) ? t.types : t.getIntersectionTypes();
+      return (
+        types.length === 3 &&
+        types[0] !== undefined &&
+        types[1] !== undefined &&
+        types[2] !== undefined &&
+        ((isFakeUnionOrIntersectionType(t) && t.join === 'intersection') ||
+          (!isFakeUnionOrIntersectionType(t) && t.isIntersection())) &&
+        ((isA(types[0], n) && isStr(types[1], n) && isStrLiteral(types[2], n)) ||
+          (isA(types[0], n) && isStr(types[2], n) && isStrLiteral(types[1], n)) ||
+          (isA(types[1], n) && isStr(types[0], n) && isStrLiteral(types[2], n)) ||
+          (isA(types[1], n) && isStr(types[2], n) && isStrLiteral(types[0], n)) ||
+          (isA(types[2], n) && isStr(types[0], n) && isStrLiteral(types[1], n)) ||
+          (isA(types[2], n) && isStr(types[1], n) && isStrLiteral(types[0], n)))
+      );
+    },
   ],
   [
     'STRING_ENUM',
